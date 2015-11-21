@@ -3,6 +3,13 @@ import argparse
 import sys
 from time import time
 
+import multiprocessing
+
+
+def compute(x):
+    move_sequence, board = x
+    return [x + 1 for x in move_sequence], board.mini_max(7)
+
 
 class Board:
     PLAYER_SCORE_HOLDER = 7
@@ -115,11 +122,13 @@ class Board:
     def find_best_move(self, n=1):
         print("Calculating best move...")
         t = time()
+
         def moves():
-            for move_sequence, board in self.find_all_moves():
-                yield ([x + 1 for x in move_sequence], board.mini_max(n))
+            with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+                yield from pool.map(compute, list(self.find_all_moves()))
+
         result = sorted(moves(), key=lambda x: x[1], reverse=True)[:1]
-        print("Calculated in %.1fs" %(time()-t))
+        print("Calculated in %.1fs" % (time() - t))
         return result
 
     def print(self):
@@ -205,4 +214,3 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--opponent_starts', default=False, action="store_true")
     args = parser.parse_args()
     run_game(args.board, not args.opponent_starts)
-
