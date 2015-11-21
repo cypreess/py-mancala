@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import argparse
+import sys
+from time import time
 
 
 class Board:
@@ -27,13 +30,16 @@ class Board:
     def __init__(self, board=None):
         if board is not None:
             self.board = board.board[:]
+            self.reversed = board.reversed
         else:
             self.board = [0, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4]
+            self.reversed = False
 
     def make_player_move(self, n):
         assert n < 6
         n += 1
         tokens = self.board[n]
+        assert tokens > 0
         self.board[n] = 0
         while tokens:
             tokens -= 1
@@ -81,6 +87,7 @@ class Board:
     def get_opponent_board(self):
         b = Board()
         b.board = self.board[7:] + self.board[:7]
+        b.reversed = not self.reversed
         return b
 
     def no_more_moves(self):
@@ -88,74 +95,117 @@ class Board:
             return True
         return False
 
-    def mini_max(self, depth=2, maximizing_player=True):
+    def mini_max(self, depth=2, maximizing_player=False):
         if depth == 0 or self.no_more_moves():
-            if maximizing_player:
-                return self.player_points - self.opponent_points
-            else:
-                return self.opponent_points - self.player_points
+            return self.get_heurestic_score()
 
         if maximizing_player:
             best_value = -999
-            for move, board in self.find_all_moves():
+            for move, board in self.get_opponent_board().find_all_moves():
                 val = board.mini_max(depth - 1, not maximizing_player)
                 best_value = max(best_value, val)
             return best_value
         else:
             best_value = 999
-            for move, board in self.find_all_moves():
+            for move, board in self.get_opponent_board().find_all_moves():
                 val = board.mini_max(depth - 1, not maximizing_player)
                 best_value = min(best_value, val)
             return best_value
 
+    def find_best_move(self, n=1):
+        print("Calculating best move...")
+        t = time()
+        def moves():
+            for move_sequence, board in self.find_all_moves():
+                yield ([x + 1 for x in move_sequence], board.mini_max(n))
+        result = sorted(moves(), key=lambda x: x[1], reverse=True)[:1]
+        print("Calculated in %.1fs" %(time()-t))
+        return result
+
     def print(self):
         print("  ", end="")
         print(*["%2d" % x for x in reversed(self.board[8:])], sep="|")
-        print("%2d                  %2d" % ( self.opponent_points, self.player_points))
+        print("%2d                  %2d" % (self.opponent_points, self.player_points))
         print("  ", end="")
         print(*["%2d" % x for x in self.board[1:7]], sep="|")
 
+    def get_heurestic_score(self):
+        if not self.reversed:
+            return self.player_points - self.opponent_points
+        else:
+            return self.opponent_points - self.player_points
 
-def run_game():
 
-    board = Board()
-    board.print()
+def player_move(board):
+    has_move = True
+    while has_move:
+        command = input('Player move: ').split()
+        if not command:
+            continue
+        if command[0] == 'q':
+            sys.exit(0)
 
-    while 1:
-        has_move = True
-        while has_move:
-            command = input('Player move: ').split()
-            if not command:
-                continue
-            if command[0] == 'q':
-                break
-            try:
-                c = int(command[0])
-            except:
-                print('Wrong move: ', command[0])
-                continue
-            print("Player: making move", c)
+        try:
+            c = int(command[0])
             has_move = board.make_player_move(c - 1)
             board.print()
+        except:
+            print('Wrong move: ', command[0])
+            continue
 
-        has_move = True
-        while has_move:
-            command = input('Opponent move: ').split()
-            if not command:
-                continue
-            if command[0] == 'q':
-                break
+    return board
 
-            board = board.get_opponent_board()
-            try:
-                c = int(c)
-            except:
-                print('Wrong move: ', command[0])
-                continue
-            print("Opponent: making move", c)
-            has_move=board.make_player_move(c - 1)
+
+def opponent_move(board):
+    board = board.get_opponent_board()
+    has_move = True
+    while has_move:
+        command = input('Opponent move: ').split()
+        if not command:
+            continue
+        if command[0] == 'q':
+            sys.exit(0)
+        try:
+            c = int(command[0])
+            has_move = board.make_player_move(c - 1)
             board.get_opponent_board().print()
+        except:
+            print('Wrong move: ', command[0])
+            continue
+
+    return board.get_opponent_board()
+
+
+def run_game(initial_board=None, player_starts=True):
+    board = Board()
+    if initial_board is not None:
+        board.board = initial_board
+
+    board.print()
+    while 1:
+        if player_starts:
+            for best_move in board.find_best_move(5):
+                print(best_move)
+            board = player_move(board)
+            board = opponent_move(board)
+        else:
+            board = opponent_move(board)
+            for best_move in board.find_best_move(5):
+                print(best_move)
+            board = player_move(board)
+
+        if board.no_more_moves():
+            print("Games ended")
+            break
 
 
 if __name__ == '__main__':
-    run_game()
+    parser = argparse.ArgumentParser(description='Merges crawling data into production mongo database.')
+    parser.add_argument('-b', '--board', default=None)
+    parser.add_argument('-o', '--opponent_starts', default=False, action="store_true")
+    args = parser.parse_args()
+    run_game(args.board, not args.opponent_starts)
+
+    # board = Board()
+    # for best_move in board.find_best_move(6):
+    #     print(best_move)

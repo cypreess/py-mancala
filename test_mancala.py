@@ -15,6 +15,13 @@ def test_no_more_moves():
     assert b.no_more_moves() == True
 
 
+def test_heurestic():
+    b = Board()
+    b.board = [11, 0, 0, 0, 0, 0, 1, 10, 1, 2, 3, 4, 5, 6]
+    assert b.get_heurestic_score() == -1
+    assert b.get_opponent_board().get_heurestic_score() == -1
+
+
 def test_player_points():
     b = Board()
     b.board = [11, 0, 0, 0, 0, 0, 1, 10, 1, 2, 3, 4, 5, 6]
@@ -102,3 +109,9 @@ def test_get_oponent_board():
     b = Board()
     b.board = [0, 5, 4, 0, 6, 6, 6, 1, 5, 5, 5, 5, 5, 5]
     assert b.get_opponent_board().board == [1, 5, 5, 5, 5, 5, 5, 0, 5, 4, 0, 6, 6, 6]
+
+
+def test_move():
+    b = Board()
+    b.board = [1, 0, 0, 7, 6, 6, 1, 2, 1, 8, 6, 5, 5, 0]
+    assert b.
