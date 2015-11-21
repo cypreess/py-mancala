@@ -5,10 +5,11 @@ from time import time
 
 import multiprocessing
 
+DEPTH = 5
 
 def compute(x):
     move_sequence, board = x
-    return [x + 1 for x in move_sequence], board.mini_max(7)
+    return [x + 1 for x in move_sequence], board.mini_max(DEPTH)
 
 
 class Board:
@@ -102,21 +103,25 @@ class Board:
             return True
         return False
 
-    def mini_max(self, depth=2, maximizing_player=False):
+    def mini_max(self, depth=2, alpha=-999, beta=+999, maximizing_player=False):
         if depth == 0 or self.no_more_moves():
             return self.get_heurestic_score()
 
         if maximizing_player:
             best_value = -999
             for move, board in self.get_opponent_board().find_all_moves():
-                val = board.mini_max(depth - 1, not maximizing_player)
-                best_value = max(best_value, val)
+                best_value = max(best_value, board.mini_max(depth - 1, alpha, beta, not maximizing_player))
+                alpha = max(alpha, best_value)
+                if beta <= alpha:
+                    break
             return best_value
         else:
             best_value = 999
             for move, board in self.get_opponent_board().find_all_moves():
-                val = board.mini_max(depth - 1, not maximizing_player)
-                best_value = min(best_value, val)
+                best_value = min(best_value, board.mini_max(depth - 1, not maximizing_player))
+                beta = min(beta, best_value)
+                if beta <= alpha:
+                    break
             return best_value
 
     def find_best_move(self, n=1):
@@ -209,8 +214,12 @@ def run_game(initial_board=None, player_starts=True):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Merges crawling data into production mongo database.')
+    parser = argparse.ArgumentParser(description='Mancala AI')
     parser.add_argument('-b', '--board', default=None)
+    parser.add_argument('-d', '--depth', type=int, default=5)
     parser.add_argument('-o', '--opponent_starts', default=False, action="store_true")
     args = parser.parse_args()
+
+    DEPTH = args.depth
+
     run_game(args.board, not args.opponent_starts)
