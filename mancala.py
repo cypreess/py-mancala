@@ -206,6 +206,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     run_game(args.board, not args.opponent_starts)
 
-    # board = Board()
-    # for best_move in board.find_best_move(6):
-    #     print(best_move)
