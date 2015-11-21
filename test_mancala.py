@@ -111,7 +111,3 @@ def test_get_oponent_board():
     assert b.get_opponent_board().board == [1, 5, 5, 5, 5, 5, 5, 0, 5, 4, 0, 6, 6, 6]
 
 
-def test_move():
-    b = Board()
-    b.board = [1, 0, 0, 7, 6, 6, 1, 2, 1, 8, 6, 5, 5, 0]
-    assert b.
