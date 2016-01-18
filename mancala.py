@@ -2,10 +2,13 @@
 import argparse
 import sys
 from time import time
-
 import multiprocessing
 
+from io import StringIO
+
 DEPTH = 5
+DONT_SCORE_ONE = True
+
 
 def compute(x):
     move_sequence, board = x
@@ -60,10 +63,11 @@ class Board:
             return True
 
         if self.board[n] == 1 and 0 < n < 7:
-            self.board[n] = 0
             oponent_pos = len(self.board) - n
-            self.board[self.PLAYER_SCORE_HOLDER] += 1 + self.board[oponent_pos]
-            self.board[oponent_pos] = 0
+            if DONT_SCORE_ONE is False or (DONT_SCORE_ONE is True and self.board[oponent_pos] != 0):
+                self.board[n] = 0
+                self.board[self.PLAYER_SCORE_HOLDER] += 1 + self.board[oponent_pos]
+                self.board[oponent_pos] = 0
 
         return False
 
@@ -120,7 +124,6 @@ class Board:
                 best_value = min(best_value, val)
             return best_value
 
-
     def mini_max_alpha_beta(self, depth=2, alpha=-999, beta=+999, maximizing_player=False):
         if depth == 0 or self.no_more_moves():
             return self.get_heurestic_score()
@@ -160,6 +163,16 @@ class Board:
         print("%2d                  %2d" % (self.opponent_points, self.player_points))
         print("  ", end="")
         print(*["%2d" % x for x in self.board[1:7]], sep="|")
+
+    def string(self):
+        result = StringIO()
+        print("  ", end="", file=result)
+        print(*["%2d" % x for x in reversed(self.board[8:])], sep="|", file=result)
+        print("%2d                  %2d" % (self.opponent_points, self.player_points), file=result)
+        print("  ", end="", file=result)
+        print(*["%2d" % x for x in self.board[1:7]], sep="|", file=result)
+        return result.getvalue()
+
 
     def get_heurestic_score(self):
         if not self.reversed:
@@ -235,9 +248,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mancala AI')
     parser.add_argument('-b', '--board', default=None)
     parser.add_argument('-d', '--depth', type=int, default=5)
-    parser.add_argument('-o', '--opponent_starts', default=False, action="store_true")
+    parser.add_argument('-o', '--opponent-starts', default=False, action="store_true")
+    parser.add_argument('--dont-score-one', default=False, action="store_true")
     args = parser.parse_args()
 
     DEPTH = args.depth
-
+    DONT_SCORE_ONE = args.dont_score_one
     run_game(args.board, not args.opponent_starts)
