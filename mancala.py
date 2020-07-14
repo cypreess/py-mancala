@@ -145,7 +145,7 @@ class Board:
                     break
             return best_value
 
-    def find_best_move(self, n=1):
+    def find_best_move(self):
         print("Calculating best move...")
         t = time()
 
@@ -224,19 +224,19 @@ def opponent_move(board):
 def run_game(initial_board=None, player_starts=True):
     board = Board()
 
-    if initial_board is not None:
+    if initial_board is not None: # Instantiate a board
         board.board = initial_board
 
-    board.print()
+    board.print() # Show the user the starting board
     while 1:
-        if player_starts:
-            for best_move in board.find_best_move(5):
+        if player_starts: # Player means the AI
+            for best_move in board.find_best_move(): # Calcualte the best move and show it to the user
                 print(best_move)
             board = player_move(board)
             board = opponent_move(board)
         else:
             board = opponent_move(board)
-            for best_move in board.find_best_move(5):
+            for best_move in board.find_best_move():
                 print(best_move)
             board = player_move(board)
 
