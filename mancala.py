@@ -223,6 +223,7 @@ def opponent_move(board):
 
 def run_game(initial_board=None, player_starts=True):
     board = Board()
+
     if initial_board is not None:
         board.board = initial_board
 
@@ -246,7 +247,8 @@ def run_game(initial_board=None, player_starts=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mancala AI')
-    parser.add_argument('-b', '--board', default=None)
+    parser.add_argument('-b', '--board', type=int, nargs=14, default=None,
+                        help="Board layout, e.g 0 4 4 4 4 4 4 0 4 4 4 4 4 4")
     parser.add_argument('-d', '--depth', type=int, default=5)
     parser.add_argument('-o', '--opponent-starts', default=False, action="store_true")
     parser.add_argument('--dont-score-one', default=False, action="store_true")
@@ -254,4 +256,5 @@ if __name__ == '__main__':
 
     DEPTH = args.depth
     DONT_SCORE_ONE = args.dont_score_one
+
     run_game(args.board, not args.opponent_starts)
