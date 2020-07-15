@@ -145,7 +145,7 @@ class Board:
                     break
             return best_value
 
-    def find_best_move(self, n=1):
+    def find_best_move(self):
         print("Calculating best move...")
         t = time()
 
@@ -223,19 +223,20 @@ def opponent_move(board):
 
 def run_game(initial_board=None, player_starts=True):
     board = Board()
-    if initial_board is not None:
+
+    if initial_board is not None: # Instantiate a board
         board.board = initial_board
 
-    board.print()
+    board.print() # Show the user the starting board
     while 1:
-        if player_starts:
-            for best_move in board.find_best_move(5):
+        if player_starts: # Player means the AI
+            for best_move in board.find_best_move(): # Calcualte the best move and show it to the user
                 print(best_move)
             board = player_move(board)
             board = opponent_move(board)
         else:
             board = opponent_move(board)
-            for best_move in board.find_best_move(5):
+            for best_move in board.find_best_move():
                 print(best_move)
             board = player_move(board)
 
@@ -246,7 +247,8 @@ def run_game(initial_board=None, player_starts=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mancala AI')
-    parser.add_argument('-b', '--board', default=None)
+    parser.add_argument('-b', '--board', type=int, nargs=14, default=None,
+                        help="Board layout, e.g 0 4 4 4 4 4 4 0 4 4 4 4 4 4")
     parser.add_argument('-d', '--depth', type=int, default=5)
     parser.add_argument('-o', '--opponent-starts', default=False, action="store_true")
     parser.add_argument('--dont-score-one', default=False, action="store_true")
@@ -254,4 +256,5 @@ if __name__ == '__main__':
 
     DEPTH = args.depth
     DONT_SCORE_ONE = args.dont_score_one
+
     run_game(args.board, not args.opponent_starts)
