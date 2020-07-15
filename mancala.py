@@ -64,7 +64,9 @@ class Board:
 
         if self.board[n] == 1 and 0 < n < 7:
             oponent_pos = len(self.board) - n
-            if DONT_SCORE_ONE is False or (DONT_SCORE_ONE is True and self.board[oponent_pos] != 0):
+            if DONT_SCORE_ONE is False or (
+                DONT_SCORE_ONE is True and self.board[oponent_pos] != 0
+            ):
                 self.board[n] = 0
                 self.board[self.PLAYER_SCORE_HOLDER] += 1 + self.board[oponent_pos]
                 self.board[oponent_pos] = 0
@@ -124,14 +126,19 @@ class Board:
                 best_value = min(best_value, val)
             return best_value
 
-    def mini_max_alpha_beta(self, depth=2, alpha=-999, beta=+999, maximizing_player=False):
+    def mini_max_alpha_beta(
+        self, depth=2, alpha=-999, beta=+999, maximizing_player=False
+    ):
         if depth == 0 or self.no_more_moves():
             return self.get_heurestic_score()
 
         if maximizing_player:
             best_value = -999
             for move, board in self.get_opponent_board().find_all_moves():
-                best_value = max(best_value, board.mini_max(depth - 1, alpha, beta, not maximizing_player))
+                best_value = max(
+                    best_value,
+                    board.mini_max(depth - 1, alpha, beta, not maximizing_player),
+                )
                 alpha = max(alpha, best_value)
                 if beta <= alpha:
                     break
@@ -139,7 +146,9 @@ class Board:
         else:
             best_value = 999
             for move, board in self.get_opponent_board().find_all_moves():
-                best_value = min(best_value, board.mini_max(depth - 1, not maximizing_player))
+                best_value = min(
+                    best_value, board.mini_max(depth - 1, not maximizing_player)
+                )
                 beta = min(beta, best_value)
                 if beta <= alpha:
                     break
@@ -158,21 +167,30 @@ class Board:
         return result
 
     def print(self):
-        print("  ", end="")
+        print("         ", end="")
         print(*["%2d" % x for x in reversed(self.board[8:])], sep="|")
-        print("%2d                  %2d" % (self.opponent_points, self.player_points))
-        print("  ", end="")
+        print(
+            "AI --> %2d                  %2d <-- You"
+            % (self.opponent_points, self.player_points)
+        )
+        print("         ", end="")
         print(*["%2d" % x for x in self.board[1:7]], sep="|")
+        print("")
+        print("          ^  ^  ^  ^  ^  ^")
+        print("moves:    1  2  3  4  5  6")
 
     def string(self):
         result = StringIO()
-        print("  ", end="", file=result)
+        print("         ", end="", file=result)
         print(*["%2d" % x for x in reversed(self.board[8:])], sep="|", file=result)
-        print("%2d                  %2d" % (self.opponent_points, self.player_points), file=result)
-        print("  ", end="", file=result)
+        print(
+            "AI --> %2d                  %2d <-- You"
+            % (self.opponent_points, self.player_points),
+            file=result,
+        )
+        print("         ", end="", file=result)
         print(*["%2d" % x for x in self.board[1:7]], sep="|", file=result)
         return result.getvalue()
-
 
     def get_heurestic_score(self):
         if not self.reversed:
@@ -184,10 +202,10 @@ class Board:
 def player_move(board):
     has_move = True
     while has_move:
-        command = input('Player move: ').split()
+        command = input("Player move: ").split()
         if not command:
             continue
-        if command[0] == 'q':
+        if command[0] == "q":
             sys.exit(0)
 
         try:
@@ -195,7 +213,7 @@ def player_move(board):
             has_move = board.make_player_move(c - 1)
             board.print()
         except:
-            print('Wrong move: ', command[0])
+            print("Wrong move: ", command[0])
             continue
 
     return board
@@ -205,17 +223,17 @@ def opponent_move(board):
     board = board.get_opponent_board()
     has_move = True
     while has_move:
-        command = input('Opponent move: ').split()
+        command = input("Opponent move: ").split()
         if not command:
             continue
-        if command[0] == 'q':
+        if command[0] == "q":
             sys.exit(0)
         try:
             c = int(command[0])
             has_move = board.make_player_move(c - 1)
             board.get_opponent_board().print()
         except:
-            print('Wrong move: ', command[0])
+            print("Wrong move: ", command[0])
             continue
 
     return board.get_opponent_board()
@@ -224,13 +242,17 @@ def opponent_move(board):
 def run_game(initial_board=None, player_starts=True):
     board = Board()
 
-    if initial_board is not None: # Instantiate a board
+    if initial_board is not None:  # Instantiate a board
         board.board = initial_board
 
-    board.print() # Show the user the starting board
+    board.print()  # Show the user the starting board
     while 1:
-        if player_starts: # Player means the AI
-            for best_move in board.find_best_move(): # Calcualte the best move and show it to the user
+        if player_starts:  # Player means the AI
+            for (
+                best_move
+            ) in (
+                board.find_best_move()
+            ):  # Calcualte the best move and show it to the user
                 print(best_move)
             board = player_move(board)
             board = opponent_move(board)
@@ -245,13 +267,19 @@ def run_game(initial_board=None, player_starts=True):
             break
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Mancala AI')
-    parser.add_argument('-b', '--board', type=int, nargs=14, default=None,
-                        help="Board layout, e.g 0 4 4 4 4 4 4 0 4 4 4 4 4 4")
-    parser.add_argument('-d', '--depth', type=int, default=5)
-    parser.add_argument('-o', '--opponent-starts', default=False, action="store_true")
-    parser.add_argument('--dont-score-one', default=False, action="store_true")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Mancala AI")
+    parser.add_argument(
+        "-b",
+        "--board",
+        type=int,
+        nargs=14,
+        default=None,
+        help="Board layout, e.g 0 4 4 4 4 4 4 0 4 4 4 4 4 4",
+    )
+    parser.add_argument("-d", "--depth", type=int, default=5)
+    parser.add_argument("-o", "--opponent-starts", default=False, action="store_true")
+    parser.add_argument("--dont-score-one", default=False, action="store_true")
     args = parser.parse_args()
 
     DEPTH = args.depth
